@@ -39,4 +39,4 @@ def test_histogram(uncfile):
 
 
 def test_header(uncfile):
-    assert uncfile.header.birth_year == '1970'
+    assert uncfile.header.patient_date_of_birth.year == 1970
