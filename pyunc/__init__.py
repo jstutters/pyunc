@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import os
 import struct
 import numpy as np
-from .header import UNCHeader
+from .header import UNCHeader, SliceHeader
 
 MAXMIN = 0
 HISTO = 1
@@ -50,8 +50,6 @@ class UNCFile(object):
         self._calculate_pixel_count()
         self._read_info(f)
         self._read_pixels(f)
-        self.header = UNCHeader(self.info[0])
-        self._read_slice_info()
 
     @classmethod
     def from_path(cls, path):
@@ -103,12 +101,11 @@ class UNCFile(object):
         info_len = cnt - self.addresses[INFO]
         f.seek(self.addresses[INFO], os.SEEK_SET)
         info_field = f.read(info_len).decode('ascii')
-        self.info = info_field.split('\0', 1)
-
-    def _read_slice_info(self):
+        self.info = info_field.split('\0')
+        self.header = UNCHeader(self.info[0])
         self.slice_info = []
         for i in range(1, self.dimv[0]):
-            self.slice_info.append(self._parse_slice_info(self.info[i]))
+            self.slice_info.append(SliceHeader(self.info[i]))
 
     def _read_pixels(self, f):
         f.seek(self.addresses[PIXELS], os.SEEK_SET)

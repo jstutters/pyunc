@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datetime import datetime
 from functools import partial
 import re
@@ -90,7 +91,7 @@ class Header(object):
         slices = []
         found_slice = False
         for l in infoarr:
-            print l
+            print(l)
             if l.startswith('Echo_Time='):
                 slices.append([])
                 found_slice = True
@@ -102,6 +103,7 @@ class Header(object):
     def _do_parse(self, info, actions):
         infoarr = info.split('\n')
         for l in infoarr:
+            print(l)
             for a in actions:
                 if l.startswith(a):
                     actions[a](l)
@@ -110,6 +112,7 @@ class Header(object):
 
 class SliceHeader(Header):
     def __init__(self, info):
+        print(info)
         actions = {
             'Echo_Time=': partial(self._parse_equals, 'echo_time', str)
         }
