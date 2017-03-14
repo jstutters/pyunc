@@ -32,6 +32,7 @@ class UNCHeader(object):
         self.text = infoarr
         self.slices = self._read_slices(infoarr)
 
+class Header(object):
     def _parse_dims(self, l):
         dims_value = l.split(':')[1].strip()
         dims = dims_value.split(' ')
@@ -97,3 +98,43 @@ class UNCHeader(object):
                 continue
             slices[-1].append(l)
         return slices
+
+    def _do_parse(self, info, actions):
+        infoarr = info.split('\n')
+        for l in infoarr:
+            for a in actions:
+                if l.startswith(a):
+                    actions[a](l)
+        self.text = infoarr
+
+
+class SliceHeader(Header):
+    def __init__(self, info):
+        actions = {
+            'Echo_Time=': partial(self._parse_equals, 'echo_time', str)
+        }
+        self._do_parse(info, actions)
+
+
+class UNCHeader(Header):
+    def __init__(self, info):
+        self.dicom_header = {}
+        actions = {
+            'Patient_Name=': partial(self._parse_equals, 'patient_name', str),
+            'Patient_ID=': partial(self._parse_equals, 'patient_id', str),
+            'Patient_Birth_Date=': self._parse_dob,
+            'Scan_Date=': self._parse_scan_date,
+            'Modality=': partial(self._parse_equals, 'modality', str),
+            'Scanning_Sequence=': partial(self._parse_equals, 'scanning_sequence', str),
+            'Sequence_Variant=': partial(self._parse_equals, 'sequence_variant', str),
+            'Flip_Angle=': partial(self._parse_equals, 'flip_angle', float),
+            'Slice_Thickness_mm=': partial(self._parse_equals, 'slice_thickness_mm', float),
+            'Image_Orientation_Patient_Coordinates=': partial(self._parse_split, 'image_orientation_patient_coordinates', '\\', float),
+            'Image_Position_Patient_Coordinates=': partial(self._parse_split, 'image_position_patient_coordinates', '\\', float),
+            'Intensity_Rescale_Units=': partial(self._parse_equals, 'intensity_rescale_units', str),
+            'Intensity_Rescale_Slope=': partial(self._parse_equals, 'intensity_rescale_slope', float),
+            'Intensity_Rescale_Intercept=': partial(self._parse_equals, 'intensity_rescale_intercept', float),
+            'Colour_Mapping=': partial(self._parse_equals, 'colour_mapping', str),
+            '<0x': self._parse_dicom_field
+        }
+        self._do_parse(info, actions)
