@@ -30,6 +30,7 @@ class UNCHeader(object):
                 if l.startswith(a):
                     actions[a](l)
         self.text = infoarr
+        self.slices = self._read_slices(infoarr)
 
     def _parse_dims(self, l):
         dims_value = l.split(':')[1].strip()
@@ -83,3 +84,16 @@ class UNCHeader(object):
             else:
                 value = m.group('value')
             self.dicom_header[m.group('id')] = value
+
+    def _read_slices(self, infoarr):
+        slices = []
+        found_slice = False
+        for l in infoarr:
+            print l
+            if l.startswith('Echo_Time='):
+                slices.append([])
+                found_slice = True
+            if not found_slice:
+                continue
+            slices[-1].append(l)
+        return slices
