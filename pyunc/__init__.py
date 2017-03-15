@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 import struct
 import numpy as np
@@ -40,6 +39,12 @@ PIXEL_FMTS = {
 
 
 class UNCFile(object):
+    """Represents a UNC format image.
+
+    Args:
+        f (file): an UNC file opened in read mode
+    """
+
     def __init__(self, f):
         self._read_addresses(f)
         self._read_title(f)
@@ -54,6 +59,11 @@ class UNCFile(object):
 
     @classmethod
     def from_path(cls, path):
+        """Open an UNC file at the given path.
+
+        Args:
+            path (str): The filename to open
+        """
         with open(path, 'rb') as f:
             instance = cls(f)
         return instance
