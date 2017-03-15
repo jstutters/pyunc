@@ -1,5 +1,6 @@
 """Classes representing header information."""
 
+from __future__ import print_function
 from datetime import datetime
 from functools import partial
 import re
@@ -88,7 +89,9 @@ class Header(object):
 
 class SliceHeader(Header):
     """Header information for a single slice."""
+
     def __init__(self, info):
+        print(info)
         actions = {
             'Echo_Time=': partial(
                 self._parse_equals,
@@ -96,7 +99,7 @@ class SliceHeader(Header):
             ),
             'Image_Position_Patient_Coordinates=': partial(
                 self._parse_split,
-                'image_position_patient_patient_coordinates', '\\', float
+                'image_position_patient_coordinates', '\\', float
             ),
             '<0x': self._parse_dicom_field
         }
@@ -106,6 +109,7 @@ class SliceHeader(Header):
 
 class UNCHeader(Header):
     """Header information."""
+
     def __init__(self, info):
         self.dicom_header = {}
         actions = {
