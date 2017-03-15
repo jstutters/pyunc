@@ -3,6 +3,7 @@ import os
 import struct
 import numpy as np
 from .header import UNCHeader, SliceHeader
+from .__version__ import __version__
 
 MAXMIN = 0
 HISTO = 1
