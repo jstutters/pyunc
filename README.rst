@@ -2,7 +2,8 @@
 PyUNC
 =====
 
-PyUNC is a Python module for reading the UNC MRI image format.
+PyUNC is a Python module for reading the UNC MRI image format it is also able
+to convert UNC format images to NIFTI format.
 
 
 Example
@@ -24,7 +25,7 @@ Example
 Installation
 ------------
 
-::
+.. 
     git clone https://github.com/jstutters/pyunc
     cd pyunc
     pip install .
@@ -33,8 +34,8 @@ Installation
 Requirements
 ------------
 
-Plumbium is tested with Python v2.7 and 3.4.  The module will install ``numpy``
-as a dependency.
+pyunc is tested with Python v2.7 and 3.4.  The module will install numpy and
+nibabel as dependencies.
 
 
 Contribute

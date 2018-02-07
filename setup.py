@@ -24,10 +24,15 @@ setup(
     long_description=long_description,
     url='https://github.com/jstutters/pyunc',
     install_requires=[
+        "nibabel",
         "numpy",
     ],
-    setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'unc2nii = pyunc.cli:unc_to_nifti'
+        ]
+    },
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',

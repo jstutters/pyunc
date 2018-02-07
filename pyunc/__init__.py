@@ -1,3 +1,4 @@
+import io
 import os
 import struct
 import numpy as np
@@ -45,17 +46,20 @@ class UNCFile(object):
         f (file): an UNC file opened in read mode
     """
 
-    def __init__(self, f):
-        self._read_addresses(f)
-        self._read_title(f)
-        self._read_maxmin(f)
-        self._read_histogram(f)
-        self._read_pixel_format(f)
-        self._read_dimc(f)
-        self._read_dimv(f)
-        self._calculate_pixel_count()
-        self._read_info(f)
-        self._read_pixels(f)
+    @classmethod
+    def from_file(cls, f):
+        uf = cls()
+        uf._read_addresses(f)
+        uf._read_title(f)
+        uf._read_maxmin(f)
+        uf._read_histogram(f)
+        uf._read_pixel_format(f)
+        uf._read_dimc(f)
+        uf._read_dimv(f)
+        uf._calculate_pixel_count()
+        uf._read_info(f)
+        uf._read_pixels(f)
+        return uf
 
     @classmethod
     def from_path(cls, path):
@@ -65,7 +69,7 @@ class UNCFile(object):
             path (str): The filename to open
         """
         with open(path, 'rb') as f:
-            instance = cls(f)
+            instance = cls.from_file(f)
         return instance
 
     def _read_addresses(self, f):
@@ -112,13 +116,64 @@ class UNCFile(object):
         info_len = cnt - self.addresses[INFO]
         f.seek(self.addresses[INFO], os.SEEK_SET)
         info_field = f.read(info_len).decode('ascii')
-        self.info = info_field.split('\0')
+        self.info = [i for i in info_field.split('\0') if i != '']
         self.header = UNCHeader(self.info[0])
         self.slice_info = []
-        for i in range(1, self.dimv[0]):
+        for i in range(1, self.dimv[0] + 1):
             self.slice_info.append(SliceHeader(self.info[i]))
+        self.slice_info.sort(key=lambda s: s.slice_location)
 
     def _read_pixels(self, f):
         f.seek(self.addresses[PIXELS], os.SEEK_SET)
         lin_pixels = np.fromfile(f, dtype=np.dtype('>i2'), count=self.pixel_count)
         self.pixels = np.reshape(lin_pixels, self.dimv[0:self.dimc])
+
+    @property
+    def num_echoes(self):
+        return len(set([s.dicom_header.get('Echo Number', 0) for s in self.slice_info]))
+
+    def split_echoes(self):
+        slices_per_echo = int(self.pixels.shape[0] / self.num_echoes)
+        split_pixels = np.ndarray((
+            self.num_echoes,
+            slices_per_echo,
+            self.pixels.shape[1],
+            self.pixels.shape[2]
+        ))
+        for i in range(self.num_echoes):
+            start_slice = slices_per_echo * i
+            end_slice = (slices_per_echo * i) + slices_per_echo
+            split_pixels[i, :, :, :] = self.pixels[start_slice:end_slice, :, :]
+        split_uncs = []
+        for n in range(self.num_echoes):
+            uf = UNCFile()
+            uf.header = self.header
+            uf.dimc = self.dimc
+            uf.dimv = self.dimv
+            uf.slice_info = [s for s in self.slice_info if s.dicom_header['Echo Number'] == n + 1]
+            uf.pixels = split_pixels[n, :, :, :]
+            split_uncs.append(uf)
+        return split_uncs
+
+    def split_volumes(self, n_vols):
+        slices_per_vol = int(self.pixels.shape[0] / n_vols)
+        split_pixels = np.ndarray((
+            n_vols,
+            slices_per_vol,
+            self.pixels.shape[1],
+            self.pixels.shape[2]
+        ))
+        for i in range(n_vols):
+            start_slice = slices_per_vol * i
+            end_slice = (slices_per_vol * i) + slices_per_vol
+            split_pixels[i, :, :, :] = self.pixels[start_slice:end_slice, :, :]
+        split_uncs = []
+        for n in range(n_vols):
+            uf = UNCFile()
+            uf.header = self.header
+            uf.dimc = self.dimc
+            uf.dimv = self.dimv
+            uf.slice_info = [s for s in self.slice_info[0::n_vols]]
+            uf.pixels = split_pixels[n, :, :, :]
+            split_uncs.append(uf)
+        return split_uncs
