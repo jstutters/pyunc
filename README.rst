@@ -25,7 +25,8 @@ Example
 Installation
 ------------
 
-.. 
+.. code:: bash
+
     git clone https://github.com/jstutters/pyunc
     cd pyunc
     pip install .
