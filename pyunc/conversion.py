@@ -2,8 +2,8 @@ import nibabel as nib
 import numpy as np
 
 
-def unc_to_nifti(unc):
-    pix, aff = dcm_affine(unc)
+def unc_to_nifti(unc, flip_lr=False):
+    pix, aff = dcm_affine(unc, flip_lr=flip_lr)
     nii = nib.Nifti1Image(pix, aff)
     nii.header.set_xyzt_units(xyz='mm')
     nii.set_qform(aff, 1, update_affine=True)
@@ -12,7 +12,7 @@ def unc_to_nifti(unc):
     return nii
 
 
-def dcm_affine(unc):
+def dcm_affine(unc, flip_lr=False):
     iop = unc.header.image_orientation_patient_coordinates
     F = np.array(
         [[iop[0], iop[3]],
@@ -71,4 +71,6 @@ def dcm_affine(unc):
     R = np.dot(R, np.linalg.inv(rotM))
     pixels = np.rot90(pixels, k=2, axes=(0, 2))
     pixels = np.rot90(pixels, k=2, axes=(0, 1))
+    if flip_lr:
+        pixels = np.flip(pixels, axis=0)
     return pixels, R

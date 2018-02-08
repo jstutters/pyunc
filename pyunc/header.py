@@ -4,7 +4,6 @@ from __future__ import print_function
 from datetime import datetime
 from functools import partial
 import re
-import sys
 
 
 class Header(object):
@@ -32,7 +31,7 @@ class Header(object):
 
     def _parse_dicom_field(self, l):
         exp = (
-            r'(?P<tag><0x[0-9a-f]{4},\s0x[0-9a-f]{4}>)\s'
+            r'.*(?P<tag><0x[0-9a-f]{4},\s0x[0-9a-f]{4}>)\s'
             r'(?P<data_type>[\w\s\(\)]+),\s'
             r'(?:ID|REL|ACQ)?\s(?P<id>[\w\s\(\)]+)'
             r'=(?P<value>.*)'
@@ -60,13 +59,6 @@ class Header(object):
     def _parse_other(self, l):
         if l.startswith('Audit info'):
             self.audit_info.append(l)
-            return
-        try:
-            key, value = l.strip().rsplit('=', 1)
-        except ValueError:
-            print('Unable to parse line ({0!r})'.format(l), file=sys.stderr)
-        else:
-            setattr(self, key.lower(), value)
 
     def _do_parse(self, info, actions):
         infoarr = info.split('\n')
@@ -87,39 +79,33 @@ class SliceHeader(Header):
 
     def __init__(self, info):
         super(SliceHeader, self).__init__()
+        self._image_orientation_patient_coordinates = None
+        self._image_position_patient_coordinates = None
         actions = {
             'Echo_Time=': partial(
                 self._parse_equals,
                 'echo_time', float
             ),
-            'Image_Orientation_Patient_Coordinates=': partial(
-                self._parse_split,
-                'image_orientation_patient_coordinates', '\\', float
-            ),
-            'Image_Position_Patient_Coordinates=': partial(
-                self._parse_split,
-                'image_position_patient_coordinates', '\\', float
-            ),
-            '<0x': self._parse_dicom_field
+            '<': self._parse_dicom_field
         }
         self._do_parse(info, actions)
         try:
             self.slice_location = self._get_slice_location(self.dicom)
         except Exception as e:
             self.slice_location = None
-        try:
-            self.image_position_patient = self._get_image_position_patient(self.dicom)
-        except Exception as e:
-            self.image_position_patient = None
         self.text = info
 
     @staticmethod
     def _get_slice_location(header):
-        return header['Slice Location']
+        return header.dicom['Slice Location']
 
     @staticmethod
     def _get_image_position_patient(header):
-        return header['Image Position (Patient)']
+        return header.dicom['Image Position (Patient)']
+
+    @property
+    def image_position_patient(self):
+        return self.dicom['Image Position (Patient)']
 
 
 class UNCHeader(Header):
@@ -164,8 +150,16 @@ class UNCHeader(Header):
                 'slice_thickness_mm', float
             ),
             'Pixel_Size=': partial(
-                self._parse_split,
+                self._parse_equals,
                 'pixel_size', '\\', float
+            ),
+            'pixel_x_size=': partial(
+                self._parse_equals,
+                'pixel_x_size', float
+            ),
+            'pixel_y_size=': partial(
+                self._parse_equals,
+                'pixel_y_size', float
             ),
             'Intensity_Rescale_Units=': partial(
                 self._parse_equals,
@@ -183,15 +177,18 @@ class UNCHeader(Header):
                 self._parse_equals,
                 'colour_mapping', str
             ),
-            '<0x': self._parse_dicom_field
+            '<': self._parse_dicom_field
         }
         self._do_parse(info, actions)
         self.text = info
         self.slices = []
         for sl in slice_info:
             self.slices.append(SliceHeader(sl))
-        self.slices.sort(key=lambda s: s.slice_location)
+        if self.slices[0].slice_location is not None:
+            self.slices.sort(key=lambda s: s.slice_location)
+        elif self.slices[0].dicom['Instance Number']:
+            self.slices.sort(key=lambda s: s.dicom['Instance Number'])
 
     @property
     def image_orientation_patient_coordinates(self):
-        return self.slices[0].image_orientation_patient_coordinates
+        return self.dicom['Image Orientation (Patient)']
