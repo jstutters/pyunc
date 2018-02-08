@@ -21,9 +21,9 @@ def dcm_affine(unc):
     )
     dr = float(unc.header.pixel_x_size)
     dc = float(unc.header.pixel_y_size)
-    T1 = np.array([unc.slice_info[0].image_position_patient]).T
-    Tn = np.array([unc.slice_info[-1].image_position_patient]).T
-    k = (T1 - Tn) / (1 - len(unc.slice_info))
+    T1 = np.array([unc.header.slices[0].image_position_patient]).T
+    Tn = np.array([unc.header.slices[-1].image_position_patient]).T
+    k = (T1 - Tn) / (1 - len(unc.header.slices))
 
     R = np.eye(4, 4)
     R[0:3, 0] = F[:, 0] * dr
@@ -43,7 +43,7 @@ def dcm_affine(unc):
     R[0:2, :] *= -1.0
 
     perm = np.argsort(ixyz)
-    acq_3d = unc.header.dicom_header.get('MR Acquisition Type', '') == '3D'
+    acq_3d = unc.header.dicom.get('MR Acquisition Type', '') == '3D'
     axes_sorted = np.all(np.equal(np.array(range(3)), perm))
     if acq_3d and not axes_sorted:
         pixels = unc.pixels.T

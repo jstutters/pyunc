@@ -11,36 +11,9 @@ class Header(object):
     """Base class for file and slice headers."""
 
     def __init__(self):
-        self._datadict = {}
-
-    def __getattr__(self, key):
-        return self._datadict[key]
-
-    def _parse_dims(self, l):
-        dims_value = l.split(':')[1].strip()
-        dims = dims_value.split(' ')
-        for d in dims:
-            if d.startswith('cols'):
-                self.cols = int(d.split('=')[1])
-            elif d.startswith('rows'):
-                self.rows = int(d.split('=')[1])
-            elif d.startswith('slices'):
-                self.slices = int(d.split('=')[1])
-
-    def _parse_pixel_size(self, l):
-        dims_value = l.split(':')[1].strip()
-        dims = dims_value.split('x')
-        self.pixel_size = [float(d) for d in dims]
-
-    def _parse_min_max_pixel_values(self, l):
-        exp = r'Min pixel value is (?P<min>-?[0-9]+\.?[0-9]); max is (?P<max>-?[0-9]+\.?[0-9])'
-        m = re.match(exp, l)
-        self.min_pixel_value = float(m.group('min'))
-        self.max_pixel_value = float(m.group('max'))
-
-    def _parse_strslice(self, attr, key, l):
-        value = l[len(key):].strip()
-        setattr(self, attr, value)
+        self.audit_info = []
+        self.slices = []
+        self.dicom = {}
 
     def _parse_equals(self, attr, converter, l):
         value = converter(l.split('=', 1)[1].strip())
@@ -48,11 +21,11 @@ class Header(object):
 
     def _parse_dob(self, l):
         date_str = l.split('=', 1)[1]
-        self.patient_date_of_birth = datetime.strptime(date_str, '%B %d, %Y').date()
+        setattr(self, 'patient_birth_date', datetime.strptime(date_str, '%B %d, %Y').date())
 
     def _parse_scan_date(self, l):
         date_str = l.split('=', 1)[1]
-        self.scan_date = datetime.strptime(date_str, '%B %d, %Y %H:%M %p')
+        setattr(self, 'scan_date', datetime.strptime(date_str, '%B %d, %Y %I:%M %p'))
 
     def _parse_split(self, attr, sep, converter, l):
         setattr(self, attr, [converter(x) for x in l.split('=', 1)[1].split(sep)])
@@ -82,27 +55,18 @@ class Header(object):
                     value = int(m.group('value'))
             else:
                 value = m.group('value')
-            self.dicom_header[m.group('id')] = value
+            self.dicom[m.group('id')] = value
 
     def _parse_other(self, l):
+        if l.startswith('Audit info'):
+            self.audit_info.append(l)
+            return
         try:
             key, value = l.strip().rsplit('=', 1)
         except ValueError:
             print('Unable to parse line ({0!r})'.format(l), file=sys.stderr)
         else:
-            self._datadict[key] = value
-
-    def _read_slices(self, infoarr):
-        slices = []
-        found_slice = False
-        for l in infoarr:
-            if l.startswith('Echo_Time='):
-                slices.append([])
-                found_slice = True
-            if not found_slice:
-                continue
-            slices[-1].append(l)
-        return slices
+            setattr(self, key.lower(), value)
 
     def _do_parse(self, info, actions):
         infoarr = info.split('\n')
@@ -112,6 +76,7 @@ class Header(object):
             for a in actions:
                 if l.startswith(a):
                     actions[a](l)
+                    break
             else:
                 self._parse_other(l)
         self.text = infoarr
@@ -122,23 +87,30 @@ class SliceHeader(Header):
 
     def __init__(self, info):
         super(SliceHeader, self).__init__()
-        self.dicom_header = {}
         actions = {
             'Echo_Time=': partial(
                 self._parse_equals,
-                'echo_time', str
+                'echo_time', float
+            ),
+            'Image_Orientation_Patient_Coordinates=': partial(
+                self._parse_split,
+                'image_orientation_patient_coordinates', '\\', float
+            ),
+            'Image_Position_Patient_Coordinates=': partial(
+                self._parse_split,
+                'image_position_patient_coordinates', '\\', float
             ),
             '<0x': self._parse_dicom_field
         }
         self._do_parse(info, actions)
         try:
-            self._datadict['slice_location'] = self._get_slice_location(self.dicom_header)
+            self.slice_location = self._get_slice_location(self.dicom)
         except Exception as e:
-            self._datadict['slice_location'] = None
+            self.slice_location = None
         try:
-            self._datadict['image_position_patient'] = self._get_image_position_patient(self.dicom_header)
+            self.image_position_patient = self._get_image_position_patient(self.dicom)
         except Exception as e:
-            self._datadict['image_position_patient'] = None
+            self.image_position_patient = None
         self.text = info
 
     @staticmethod
@@ -153,9 +125,9 @@ class SliceHeader(Header):
 class UNCHeader(Header):
     """Header information."""
 
-    def __init__(self, info):
+    def __init__(self, info, slice_info):
         super(UNCHeader, self).__init__()
-        self.dicom_header = {}
+        self.dicom = {}
         actions = {
             'Patient_Name=': partial(
                 self._parse_equals,
@@ -170,6 +142,10 @@ class UNCHeader(Header):
             'Modality=': partial(
                 self._parse_equals,
                 'modality', str
+            ),
+            'Patient_Position=': partial(
+                self._parse_equals,
+                'patient_position', str
             ),
             'Scanning_Sequence=': partial(
                 self._parse_equals,
@@ -186,14 +162,6 @@ class UNCHeader(Header):
             'Slice_Thickness_mm=': partial(
                 self._parse_equals,
                 'slice_thickness_mm', float
-            ),
-            'Image_Orientation_Patient_Coordinates=': partial(
-                self._parse_split,
-                'image_orientation_patient_coordinates', '\\', float
-            ),
-            'Image_Position_Patient_Coordinates=': partial(
-                self._parse_split,
-                'image_position_patient_coordinates', '\\', float
             ),
             'Pixel_Size=': partial(
                 self._parse_split,
@@ -219,3 +187,11 @@ class UNCHeader(Header):
         }
         self._do_parse(info, actions)
         self.text = info
+        self.slices = []
+        for sl in slice_info:
+            self.slices.append(SliceHeader(sl))
+        self.slices.sort(key=lambda s: s.slice_location)
+
+    @property
+    def image_orientation_patient_coordinates(self):
+        return self.slices[0].image_orientation_patient_coordinates
