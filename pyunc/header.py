@@ -4,7 +4,6 @@ from __future__ import print_function
 from datetime import datetime
 from functools import partial
 import re
-import sys
 
 
 class Header(object):
@@ -87,14 +86,6 @@ class SliceHeader(Header):
                 self._parse_equals,
                 'echo_time', float
             ),
-            'Image_Orientation_Patient_Coordinates=': partial(
-                self._parse_split,
-                '_image_orientation_patient_coordinates', '\\', float
-            ),
-            'Image_Position_Patient_Coordinates=': partial(
-                self._parse_split,
-                '_image_position_patient_coordinates', '\\', float
-            ),
             '<': self._parse_dicom_field
         }
         self._do_parse(info, actions)
@@ -113,18 +104,8 @@ class SliceHeader(Header):
         return header.dicom['Image Position (Patient)']
 
     @property
-    def image_orientation_patient_coordinates(self):
-        if self._image_orientation_patient_coordinates is not None:
-            return self._image_orientation_patient_coordinates
-        else:
-            return self.dicom['Image Orientation (Patient)']
-
-    @property
     def image_position_patient(self):
-        if self._image_position_patient_coordinates is not None:
-            return self._image_position_patient_coordinates
-        else:
-            return self.dicom['Image Position (Patient)']
+        return self.dicom['Image Position (Patient)']
 
 
 class UNCHeader(Header):

@@ -7,7 +7,7 @@ from . import UNCFile
 from . import conversion
 
 
-def _conv_and_save(unc, name, echo=None, volume=None):
+def _conv_and_save(unc, name, echo=None, volume=None, flip_lr=False):
     if isinstance(name, str):
         nii_name = name
         if volume is not None:
@@ -17,7 +17,7 @@ def _conv_and_save(unc, name, echo=None, volume=None):
     else:
         nii_name = name.pop(0)
     nii_name += '.nii.gz'
-    nii = conversion.unc_to_nifti(unc)
+    nii = conversion.unc_to_nifti(unc, flip_lr=flip_lr)
     nib.save(nii, nii_name)
 
 
@@ -49,6 +49,7 @@ def unc_to_nifti():
         """)
     )
     parser.add_argument('--volumes', '-v', type=int, nargs='?', default=1, help='Number of volumes')
+    parser.add_argument('--fliplr', '-f', action='store_true', help='Flip left/right')
     parser.add_argument(
         '--output', '-o',
         nargs='?',
@@ -82,16 +83,16 @@ def unc_to_nifti():
                 # multiple echoes, multiple volumes
                 vols = echo.split_volumes(args.volumes)
                 for vol_num, vol in enumerate(vols):
-                    _conv_and_save(vol, name, echo=echo_num, volume=vol_num)
+                    _conv_and_save(vol, name, echo=echo_num, volume=vol_num, flip_lr=args.fliplr)
             else:
                 # multiple echoes, single volume
-                _conv_and_save(echo, name, echo=echo_num)
+                _conv_and_save(echo, name, echo=echo_num, flip_lr=args.fliplr)
     else:
         if args.volumes > 1:
             # single echo, multiple volumes
             vols = unc.split_volumes(args.volumes)
             for vol_num, vol in enumerate(vols):
-                _conv_and_save(vol, name, volume=vol_num)
+                _conv_and_save(vol, name, volume=vol_num, flip_lr=args.fliplr)
         else:
             # single echo, single volume
-            _conv_and_save(unc, name)
+            _conv_and_save(unc, name, flip_lr=args.fliplr)

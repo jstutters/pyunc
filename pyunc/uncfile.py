@@ -122,7 +122,7 @@ class UNCFile(object):
 
     def _read_pixels(self, f):
         dtypes = {
-            0o0001: np.dtype('>i1'),
+            0o0001: np.dtype('>B'),
             0o0002: np.dtype('>i2'),
             0o0003: np.dtype('>i4'),
             0o0010: np.dtype('>i2')
