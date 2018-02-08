@@ -122,10 +122,10 @@ class UNCFile(object):
 
     def _read_pixels(self, f):
         dtypes = {
-            0o0001: np.uint8,
-            0o0002: np.int16,
-            0o0003: np.int32,
-            0o0010: np.int16,
+            0o0001: np.dtype('>i1'),
+            0o0002: np.dtype('>i2'),
+            0o0003: np.dtype('>i4'),
+            0o0010: np.dtype('>i2')
         }
         if self.pixel_format not in dtypes:
             print(
@@ -142,6 +142,11 @@ class UNCFile(object):
     @property
     def num_echoes(self):
         return len(set([s.dicom.get('Echo Number', 0) for s in self.header.slices]))
+
+    @property
+    def echo_times(self):
+        all_times = set([s.echo_time for s in self.header.slices])
+        return sorted(list(all_times))
 
     def split_echoes(self):
         slices_per_echo = int(self.pixels.shape[0] / self.num_echoes)
@@ -162,7 +167,7 @@ class UNCFile(object):
             uf.dimc = self.dimc
             uf.dimv = self.dimv
             uf.header.slices = [
-                copy.deepcopy(s) for s in self.header.slices if s.dicom['Echo Number'] == n + 1
+                copy.deepcopy(s) for s in self.header.slices if s.echo_time == self.echo_times[n]
             ]
             uf.pixels = split_pixels[n, :, :, :]
             split_uncs.append(uf)

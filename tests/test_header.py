@@ -1,5 +1,6 @@
 """UNC header tests."""
 
+import numpy as np
 import pytest
 from fixtures import pdt2, t13d
 
@@ -69,14 +70,15 @@ def test_dicom_transmitting_coil_name(pdt2_header):
 
 
 def test_image_orientation_patient_coordinates(pdt2_header):
-    assert pdt2_header.image_orientation_patient_coordinates == [
-        0.9971486,
+    expected = np.array([
+        0.99714857,
         0.027466424,
         0.07028771,
         -0.019286815,
         0.99323463,
         -0.11451198,
-        -0.07295743,
-        0.112829834,
-        0.9909323
-    ]
+    ])
+    assert np.allclose(
+        np.array(pdt2_header.image_orientation_patient_coordinates),
+        expected
+    )

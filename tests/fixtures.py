@@ -20,6 +20,11 @@ def pdt2(tmpdir):
 
 
 @pytest.fixture
+def pdt2_header(pdt2):
+    return pdt2.header
+
+
+@pytest.fixture
 def pdt2_byte(tmpdir):
     tgt = str(os.path.join(os.path.dirname(__file__), 'data', 'pdt2_byte.unc.gz'))
     uf = _read_gzipped_unc(tgt, tmpdir)
