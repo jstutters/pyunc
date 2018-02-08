@@ -42,6 +42,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
+.pytest_cache/
 
 # Translations
 *.mo
@@ -57,3 +58,9 @@ docs/_build/
 target/
 
 junit-py*.xml
+
+# Virtualenv
+.venv
+
+# Private data
+test_prep/
