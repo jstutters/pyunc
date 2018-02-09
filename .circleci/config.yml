@@ -10,9 +10,9 @@ workflows:
       - test-2.7
 
 jobs:
-  test-3.7: &test-template
+  - test-3.7: &test-template
     docker:
-      - image: circleci/python:3.6-jessie
+      - image: circleci/python:3.7-jessie
     steps:
       - checkout
       - run: pip install .
@@ -20,22 +20,22 @@ jobs:
       - run: pytest --cov=pyunc tests
       - run: flake8 pyunc
 
-  test-3.6:
+  - test-3.6:
     <<: *test-template
     docker:
       - image: circleci/python:3.6-jessie
 
-  test-3.5:
+  - test-3.5:
     <<: *test-template
     docker:
       - image: circleci/python:3.5-jessie
 
-  test-3.4:
+  - test-3.4:
     <<: *test-template
     docker:
       - image: circleci/python:3.4-jessie
 
-  test-2.7:
+  - test-2.7:
     <<: *test-template
     docker:
       - image: circleci/python:2.7-jessie
