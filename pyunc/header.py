@@ -91,7 +91,7 @@ class SliceHeader(Header):
         self._do_parse(info, actions)
         try:
             self.slice_location = self._get_slice_location(self.dicom)
-        except Exception as e:
+        except Exception:
             self.slice_location = None
         self.text = info
 
