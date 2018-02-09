@@ -1,5 +1,5 @@
 from .uncfile import UNCFile
-from .__version__ import __version__
+from .__version__ import __version__  # noqa: F401
 
 
-__all__ = ('UNCFile')
+__all__ = ['UNCFile']
