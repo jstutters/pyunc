@@ -58,7 +58,7 @@ def dcm_affine(unc, flip_lr=False):
 
     ind4 = ixyz + np.array([0, 4, 8])
     flp = np.zeros(3)
-    flp[R.flat[ind4] < 0] = 1
+    flp[R.flatten(order='F')[ind4] < 0] = 1
     d = np.linalg.det(R[0:3, 0:3]) * np.prod(1 - flp * 2)
     if d > 0:
         if flp[0] == 1:
@@ -72,5 +72,9 @@ def dcm_affine(unc, flip_lr=False):
     pixels = np.rot90(pixels, k=2, axes=(0, 2))
     pixels = np.rot90(pixels, k=2, axes=(0, 1))
     if flip_lr:
-        pixels = np.flip(pixels, axis=0)
+        if flp[1] == 1:
+            flip_axis = 2
+        else:
+            flip_axis = 0
+        pixels = np.flip(pixels, axis=flip_axis)
     return pixels, R
