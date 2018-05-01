@@ -4,6 +4,8 @@ from __future__ import print_function
 from datetime import datetime
 from functools import partial
 import re
+import arrow
+from arrow.parser import ParserError
 
 
 class Header(object):
@@ -39,9 +41,15 @@ class Header(object):
         m = re.match(exp, l)
         if m:
             if m.group('data_type') == 'Date':
-                value = datetime.strptime(m.group('value'), '%Y%m%d').date()
+                try:
+                    value = arrow.get(m.group('value'), ['YYYYMMDD', 'YY.MM.DD']).date()
+                except ParserError:
+                    value = m.group('value')
             elif m.group('data_type') == 'Time':
-                value = datetime.strptime(m.group('value').split('.')[0], '%H%M%S').time()
+                try:
+                    value = arrow.get(m.group('value').split('.')[0], ['HHmmss', 'HH:mm:ss']).time()
+                except ParserError:
+                    value = m.group('value')
             elif m.group('data_type') == 'Decimal String':
                 if '\\' in m.group('value'):
                     value = [float(v) for v in m.group('value').split('\\')]
