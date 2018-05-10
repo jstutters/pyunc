@@ -24,6 +24,7 @@ setup(
     long_description=long_description,
     url='https://github.com/jstutters/pyunc',
     install_requires=[
+        "arrow",
         "nibabel",
         "numpy",
     ],
