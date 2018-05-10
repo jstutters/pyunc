@@ -96,3 +96,6 @@ def unc_to_nifti():
         else:
             # single echo, single volume
             _conv_and_save(unc, name, flip_lr=args.fliplr)
+
+if __name__ == '__main__':
+    unc_to_nifti()
