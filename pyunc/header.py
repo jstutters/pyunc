@@ -194,8 +194,11 @@ class UNCHeader(Header):
             self.slices.append(SliceHeader(sl))
         if self.slices[0].slice_location is not None:
             self.slices.sort(key=lambda s: s.slice_location)
-        elif self.slices[0].dicom['Instance Number']:
+        elif self.slices[0].dicom.get('Instance Number') is not None:
             self.slices.sort(key=lambda s: s.dicom['Instance Number'])
+        else:
+            # hope sort order is naturally ok
+            pass
 
     @property
     def image_orientation_patient_coordinates(self):
