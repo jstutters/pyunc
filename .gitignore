@@ -64,3 +64,6 @@ junit-py*.xml
 
 # Private data
 test_prep/
+
+# VS Code
+.vscode/
