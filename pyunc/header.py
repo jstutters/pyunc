@@ -15,6 +15,8 @@ class Header(object):
         self.audit_info = []
         self.slices = []
         self.dicom = {}
+        self._image_orientation_patient_coordinates = None
+        self._image_position_patient_coordinates = None
 
     def _parse_equals(self, attr, converter, l):
         value = converter(l.split('=', 1)[1].strip())
@@ -185,6 +187,14 @@ class UNCHeader(Header):
                 self._parse_equals,
                 'colour_mapping', str
             ),
+            'Image_Orientation_Patient_Coordinates=': partial(
+                self._parse_split,
+                '_image_orientation_patient_coordinates', '\\', float
+            ),
+            'Image_Position_Patient_Coordinates=': partial(
+                self._parse_split,
+                '_image_position_patient_coordinates', '\\', float
+            ),
             '<': self._parse_dicom_field
         }
         self._do_parse(info, actions)
@@ -202,4 +212,7 @@ class UNCHeader(Header):
 
     @property
     def image_orientation_patient_coordinates(self):
-        return self.dicom['Image Orientation (Patient)']
+        if self._image_orientation_patient_coordinates is not None:
+            return self._image_orientation_patient_coordinates
+        else:
+            return self.dicom['Image Orientation (Patient)']
