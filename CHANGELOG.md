@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.5.2] - 2018-11-05
+
+### Added
+- PAT type DICOM fields are now parsed
+
 ## [0.5.1] - 2018-08-22
 
 ### Fixed
