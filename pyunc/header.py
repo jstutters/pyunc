@@ -37,7 +37,7 @@ class Header(object):
         exp = (
             r'.*(?P<tag><0x[0-9a-f]{4},\s0x[0-9a-f]{4}>)\s'
             r'(?P<data_type>[\w\s\(\)]+),\s'
-            r'(?:ID|REL|ACQ)?\s(?P<id>[\w\s\(\)]+)'
+            r'(?:ID|REL|ACQ|PAT)?\s(?P<id>[\w\s\'\(\)]+)'
             r'=(?P<value>.*)'
         )
         m = re.match(exp, l)
