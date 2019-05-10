@@ -64,7 +64,13 @@ class Header(object):
                     value = int(m.group('value'))
             else:
                 value = m.group('value')
+            tag = self._convert_tag(m.group('tag'))
             self.dicom[m.group('id')] = value
+            self.dicom[tag] = value
+
+    def _convert_tag(self, tag):
+        b = tag[1:-1].split(',')
+        return int(b[0].strip(), 16), int(b[1].strip(), 16)
 
     def _parse_other(self, l):
         if l.startswith('Audit info'):

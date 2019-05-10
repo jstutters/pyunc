@@ -82,3 +82,8 @@ def test_image_orientation_patient_coordinates(pdt2_header):
         np.array(pdt2_header.image_orientation_patient_coordinates),
         expected
     )
+
+
+def test_dicom_tag(pdt2_header):
+    assert pdt2_header.dicom[(0x0010, 0x0010)] == 'Anonymous'
+    assert pdt2_header.dicom[(0x0010, 0x0020)] == 'Anonymous ID'
