@@ -56,12 +56,18 @@ class Header(object):
                 if '\\' in m.group('value'):
                     value = [float(v) for v in m.group('value').split('\\')]
                 else:
-                    value = float(m.group('value'))
+                    if not m.group('value'):
+                        value = None
+                    else:
+                        value = float(m.group('value'))
             elif m.group('data_type') == 'Integer String':
                 if '\\' in m.group('value'):
                     value = [int(v) for v in m.group('value').split('\\')]
                 else:
-                    value = int(m.group('value'))
+                    if not m.group('value'):
+                        value = None
+                    else:
+                        value = int(m.group('value'))
             else:
                 value = m.group('value')
             tag = self._convert_tag(m.group('tag'))
