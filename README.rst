@@ -35,7 +35,7 @@ Installation
 Requirements
 ------------
 
-pyunc is tested with Python v2.7 and 3.4.  The module will install numpy and
+pyunc is tested with Python v2.7 and 3.6.  The module will install arrow, numpy and
 nibabel as dependencies.
 
 
