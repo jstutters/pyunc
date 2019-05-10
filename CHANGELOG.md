@@ -2,13 +2,18 @@
 
 ## [Unreleased]
 
-## [0.5.2] - 2018-11-05
+## [0.6.1] - 2019-05-10
 
 ### Added
-- PAT type DICOM fields are now parsed
+
+- DICOM attributes can now be referenced by tag.
+- PAT, IMG, PROC, and PLUT DICOM attributes are now read.
+
+### Fixed
+- Can now read files where numeric values in DICOM header are empty.
 
 ## [0.5.1] - 2018-08-22
 
 ### Fixed
-- Parse Image_Orientation_Patient_Coordinates and Image_Position_Patient_Coordinates if they are
-  in general file info.
+- Parse Image_Orientation_Patient_Coordinates and
+  Image_Position_Patient_Coordinates if they are in general file info.

@@ -37,7 +37,7 @@ class Header(object):
         exp = (
             r'.*(?P<tag><0x[0-9a-f]{4},\s0x[0-9a-f]{4}>)\s'
             r'(?P<data_type>[\w\s\(\)]+),\s'
-            r'(?:ID|REL|ACQ|PAT)?\s(?P<id>[\w\s\'\(\)]+)'
+            r'(?:PAT|IMG|ID|REL|ACQ|PROC|PLUT)?\s(?P<id>[\w\s\(\)/\-\']+)'
             r'=(?P<value>.*)'
         )
         m = re.match(exp, l)
@@ -56,15 +56,27 @@ class Header(object):
                 if '\\' in m.group('value'):
                     value = [float(v) for v in m.group('value').split('\\')]
                 else:
-                    value = float(m.group('value'))
+                    if not m.group('value'):
+                        value = None
+                    else:
+                        value = float(m.group('value'))
             elif m.group('data_type') == 'Integer String':
                 if '\\' in m.group('value'):
                     value = [int(v) for v in m.group('value').split('\\')]
                 else:
-                    value = int(m.group('value'))
+                    if not m.group('value'):
+                        value = None
+                    else:
+                        value = int(m.group('value'))
             else:
                 value = m.group('value')
+            tag = self._convert_tag(m.group('tag'))
             self.dicom[m.group('id')] = value
+            self.dicom[tag] = value
+
+    def _convert_tag(self, tag):
+        b = tag[1:-1].split(',')
+        return int(b[0].strip(), 16), int(b[1].strip(), 16)
 
     def _parse_other(self, l):
         if l.startswith('Audit info'):

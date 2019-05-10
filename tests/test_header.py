@@ -53,7 +53,7 @@ def test_intensity_rescale_slope(pdt2_header):
     assert pdt2_header.intensity_rescale_slope == 1.0
 
 
-def test_intensity_rescale_slope(pdt2_header):
+def test_intensity_rescale_intercept(pdt2_header):
     assert pdt2_header.intensity_rescale_intercept == 0.0
 
 
@@ -82,3 +82,8 @@ def test_image_orientation_patient_coordinates(pdt2_header):
         np.array(pdt2_header.image_orientation_patient_coordinates),
         expected
     )
+
+
+def test_dicom_tag(pdt2_header):
+    assert pdt2_header.dicom[(0x0010, 0x0010)] == 'Anonymous'
+    assert pdt2_header.dicom[(0x0010, 0x0020)] == 'Anonymous ID'
