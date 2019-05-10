@@ -53,7 +53,7 @@ def test_intensity_rescale_slope(pdt2_header):
     assert pdt2_header.intensity_rescale_slope == 1.0
 
 
-def test_intensity_rescale_slope(pdt2_header):
+def test_intensity_rescale_intercept(pdt2_header):
     assert pdt2_header.intensity_rescale_intercept == 0.0
 
 
