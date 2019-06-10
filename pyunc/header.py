@@ -226,5 +226,7 @@ class UNCHeader(Header):
     def image_orientation_patient_coordinates(self):
         if self._image_orientation_patient_coordinates is not None:
             return self._image_orientation_patient_coordinates
-        else:
+        elif 'Image Orientation (Patient)' in self.dicom:
             return self.dicom['Image Orientation (Patient)']
+        else:
+            return self.slices[0].dicom['Image Orientation (Patient)']

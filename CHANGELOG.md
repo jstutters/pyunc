@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Get Image Orientation (Patient) from first slice if not in the global header.
+
 ## [0.6.1] - 2019-05-10
 
 ### Added
