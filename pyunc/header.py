@@ -28,7 +28,15 @@ class Header(object):
 
     def _parse_scan_date(self, l):
         date_str = l.split('=', 1)[1]
-        setattr(self, 'scan_date', datetime.strptime(date_str, '%B %d, %Y %I:%M %p'))
+        setattr(
+            self,
+            'scan_date',
+            arrow.get(date_str, [
+                'MMMM D, YYYY h:mm:ss A ZZZ',
+                'MMMM D, YYYY h:mm A ZZZ',
+                'MMMM D, YYYY h:mm A'
+            ])
+        )
 
     def _parse_split(self, attr, sep, converter, l):
         setattr(self, attr, [converter(x) for x in l.split('=', 1)[1].split(sep)])
