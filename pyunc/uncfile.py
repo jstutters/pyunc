@@ -79,7 +79,7 @@ class UNCFile(object):
 
     def _read_title(self, f):
         f.seek(self.addresses[TITLE], os.SEEK_SET)
-        title_field = struct.unpack('>81s', f.read(SIZES['title']))[0].decode('ascii')
+        title_field = struct.unpack('>81s', f.read(SIZES['title']))[0].decode('ascii', 'replace')
         self.title = title_field.split('\0', 1)[0]
 
     def _read_maxmin(self, f):
@@ -116,7 +116,7 @@ class UNCFile(object):
         cnt = f.tell()
         info_len = cnt - self.addresses[INFO]
         f.seek(self.addresses[INFO], os.SEEK_SET)
-        info_field = f.read(info_len).decode('ascii')
+        info_field = f.read(info_len).decode('ascii', 'replace')
         self.info = [i for i in info_field.split('\0') if i != '']
         self.header = UNCHeader(self.info[0], self.info[1:self.dimv[0] + 1])
 

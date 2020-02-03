@@ -2,7 +2,7 @@
 
 import numpy as np
 from pyunc.conversion import unc_to_nifti
-from fixtures import spine, t13d, pdt2
+from fixtures import flair, spine, t13d, pdt2
 
 
 def test_2d_conversion(spine):
@@ -42,3 +42,8 @@ def test_split_conversion(pdt2):
     nii_e2 = unc_to_nifti(e2)
     assert np.allclose(nii_e1.header.get_best_affine(), expected_affine, atol=1e-6)
     assert np.allclose(nii_e2.header.get_best_affine(), expected_affine, atol=1e-6)
+
+
+def test_ascii_conversion(flair):
+    _ = unc_to_nifti(spine)
+
