@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.6.3] - 2020-02-03
+
+### Fixed
+
+- Handle non-ASCII characters in some headers.
+- Handle dates where seconds are missing.
+
 ## [0.6.2] - 2019-06-10
 
 ### Fixed
